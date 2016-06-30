@@ -38,7 +38,7 @@ public class Main {
 			
 			UserDao userDao = new UserDao();
 			userDao.setconn(conn);
-			server.setFileDao(fileDao);
+			server.setUserDao(userDao);
 
 			Future<?> serverFuture = executor.submit(server);
 			
