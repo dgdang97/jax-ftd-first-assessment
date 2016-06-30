@@ -2,11 +2,15 @@ package com.cooksys.ftd.assessment.db.models;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-
+@XmlRootElement(name = "User")
 public class User {
 
 	private String user;
 	private String password;
+	
+	public User() {
+		super();
+	}
 	
 	public User(String user, String password) {
 		super();
