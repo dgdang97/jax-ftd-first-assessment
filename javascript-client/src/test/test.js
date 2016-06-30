@@ -2,7 +2,7 @@
 
 import jsc from 'jsverify'
 
-describe('ftd-day-9-javascript-kata', function () {
+describe('ftd-first-assessment', function () {
   jsc.property('webpack and babel wooooo', function () {
     return true
   })
