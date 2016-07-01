@@ -1,12 +1,11 @@
 package com.cooksys.ftd.assessment.filesharing;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.Socket;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -33,6 +32,7 @@ public class ClientHandler implements Runnable {
 	private PrintWriter writer;
 	private FileDao fileDao;
 	private UserDao userDao;
+	private Socket socket;
 
 	private JAXBContext jc;
 	private Marshaller marshal;
@@ -71,35 +71,35 @@ public class ClientHandler implements Runnable {
 		}
 
 	}
+
 	private void output(Response response) throws JAXBException {
 		StringWriter sw = new StringWriter();
 		this.marshal.marshal(response, sw);
 		writer.print(sw.toString());
 		writer.flush();
 	}
-	
+
 	@Override
 	public void run() {
 		log.info("Client connected. Awaiting command.");
 		try {
 			String command = this.reader.readLine();
-			log.info("Received command");
-			StringReader sr =  new StringReader(this.reader.readLine());
-			User user = (User) uMarshall.unmarshal(sr);
+			log.info("Received command {}", command);
 			Response response = new Response();
-			
+			StringReader sr = new StringReader(this.reader.readLine());
+
 			if (command.equals("registerUser")) {
-				
+				User user = (User) uMarshall.unmarshal(sr);
 				Boolean registerSuccess = this.userDao.registerUser(user);
-				
+
 				response.setTrueFalse(registerSuccess.toString());
 				this.output(response);
-				
+
 			} else if (command.equals("loginUser")) {
-				
+				User user = (User) uMarshall.unmarshal(sr);
 				String isUser = this.userDao.loginUser(user);
 				Boolean userCheck;
-				
+
 				if (isUser.equals("Username not in use")) {
 					userCheck = false;
 				} else {
@@ -108,23 +108,52 @@ public class ClientHandler implements Runnable {
 				}
 				response.setTrueFalse(userCheck.toString());
 				this.output(response);
-				
+
 			} else if (command.equals("listFiles")) {
-				
+
+				User user = (User) uMarshall.unmarshal(sr);
+
 				List<FileData> fileList = fileDao.listFiles(user);
-				response.setListFiles(fileList);
-				this.output(response);
-			} else if (command.equals("uploadFile")) {
-				sr = new StringReader(this.reader.readLine());
-				FileData upload = (FileData) uMarshall.unmarshal(sr);
-				log.info("Received");
-				Boolean uploaded = fileDao.uploadFiles(upload, user.getUser());
-				response.setTrueFalse(uploaded.toString());
-			}
+
+				for (FileData fd : fileList) {
+					StringWriter sw = new StringWriter();
+					this.marshal.marshal(fd, sw);
+					this.writer.print(sw.toString());
+					this.writer.flush();
+					this.reader.readLine();
+				}
+				
+				StringWriter sw2 = new StringWriter();
+				
+				FileData fd = new FileData();
+				fd.setFilePath("Stop");
+				
+				this.marshal.marshal(fd, sw2);
+				this.writer.print(sw2.toString());
+				this.writer.flush();
 			
+			} else if (command.equals("uploadFile")) {
+				FileData upload = (FileData) uMarshall.unmarshal(sr);
+				Boolean uploaded = fileDao.uploadFiles(upload);
+				
+				response.setTrueFalse(uploaded.toString());
+				this.output(response);
+				
+			} else if (command.equals("downloadFile")) {
+				FileData download = (FileData) uMarshall.unmarshal(sr);
+				Boolean downloaded = fileDao.downloadFile(download);
+				response.setTrueFalse(downloaded.toString());
+				
+				this.output(response);
+			}
 		} catch (IOException | JAXBException e) {
 			log.error("An error occurred while obtaining a client command", e);
 		}
+
+	}
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
 
 	}
 

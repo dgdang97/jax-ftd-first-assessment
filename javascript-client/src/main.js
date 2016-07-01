@@ -1,7 +1,7 @@
 
 import vorpal from 'vorpal'
 
-import { registerUser, encrypt, loginUser, listFiles, compare, uploadFiles } from './functions'
+import { registerUser, loginUser, listFiles, encrypt, uploadFiles, downloadFiles, compare } from './functions'
 
 const cli = vorpal()
 let loggedIn = false
@@ -14,15 +14,19 @@ register
   .description('registers a username with a password')
   .action((args, cb) => {
     const hashword = encrypt(args.password)
-    return (
-    Promise.resolve(hashword !== undefined)
-      .then(() => registerUser(args.username, hashword))
-        .then((Response) => {
-          Response.trueFalse === 'true'
-          ? console.log('Successfully registered')
-          : console.log('Register failed. Username already taken.')
-        })
-      )
+    if (loggedIn === false) {
+      return (
+      Promise.resolve(hashword !== undefined)
+        .then(() => registerUser(args.username, hashword))
+          .then((Response) => {
+            Response.trueFalse === 'true'
+            ? console.log('Successfully registered')
+            : console.log('Register failed. Username already taken.')
+          })
+        )
+    } else {
+      console.log('You are already logged in!')
+    }
   })
 
 const login = cli.command('login <username> <password>')
@@ -59,12 +63,13 @@ files
       Promise.resolve(
         loggedIn === true
         ? listFiles(username)
+          .then(() => console.log('End of file list'))
         : console.log('Access denied. Please log in first.')
       )
     )
   })
 
-const upload = cli.command('upload <local file path> [new file path]')
+const upload = cli.command('upload <localpath> [newpath]')
 upload
   .action((args, cb) => {
     return (
@@ -72,12 +77,29 @@ upload
         loggedIn === true
         ? uploadFiles(username, args.localpath, args.newpath)
           .then((Response) =>
-        Response.trueFalse
+        Response.trueFalse === 'true'
       ? console.log('Upload successful')
       : console.log('Upload failed')
     )
         : console.log('Access denied. Please log in first.')
       )
     )
+  })
+
+const download = cli.command('download <fileID> [newpath]')
+download
+  .action((args, cb) => {
+    return (
+        Promise.resolve(
+          loggedIn === true
+          ? downloadFiles(username, args.fileID, args.newpath)
+            .then((Response) =>
+          Response.trueFalse === 'true'
+        ? console.log('Download successful')
+        : console.log('Download failed')
+      )
+          : console.log('Access denied. Please log in first.')
+        )
+      )
   })
 cli.show()
