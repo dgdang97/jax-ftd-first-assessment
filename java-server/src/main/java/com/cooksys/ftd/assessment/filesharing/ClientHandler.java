@@ -1,6 +1,8 @@
 package com.cooksys.ftd.assessment.filesharing;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -112,6 +114,12 @@ public class ClientHandler implements Runnable {
 				List<FileData> fileList = fileDao.listFiles(user);
 				response.setListFiles(fileList);
 				this.output(response);
+			} else if (command.equals("uploadFile")) {
+				sr = new StringReader(this.reader.readLine());
+				FileData upload = (FileData) uMarshall.unmarshal(sr);
+				log.info("Received");
+				Boolean uploaded = fileDao.uploadFiles(upload, user.getUser());
+				response.setTrueFalse(uploaded.toString());
 			}
 			
 		} catch (IOException | JAXBException e) {

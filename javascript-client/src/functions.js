@@ -30,6 +30,22 @@ export function listFiles (user) {
   return serverConnect('listFiles', user, null)
 }
 
+export function uploadFiles (user, localpath, newpath) {
+  return new Promise(function executor (resolve, reject) {
+    let server = net.createConnection(667, (err) => {
+      if (err) {
+        return false
+      } else {
+        server.write(`uploadFile\n${JSON.stringify({User: {user: user}})}\n${JSON.stringify({FileData: {filePath: localpath, altPath: newpath}})}`)
+        server.on('data', (data) => {
+          const { Response } = JSON.parse(data.toString())
+          resolve(Response)
+        })
+      }
+    })
+  })
+}
+
 export function encrypt (password) {
   return bcrypt.hashSync(password, salt)
 }
@@ -50,5 +66,6 @@ export default {
   registerUser,
   loginUser,
   encrypt,
+  uploadFiles,
   compare
 }

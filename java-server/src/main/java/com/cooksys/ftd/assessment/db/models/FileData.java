@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name="File")
 public class FileData {
 
-	private String fileName;
+	private String altPath;
 	private String filePath;
 	private Integer fileID;
 	
@@ -13,10 +13,10 @@ public class FileData {
 		super();
 	}
 	
-	public FileData(Integer fileID, String fileName, String filePath) {
+	public FileData(Integer fileID, String altPath, String filePath) {
 		super();
 		this.fileID = fileID;
-		this.fileName = fileName;
+		this.altPath = altPath;
 		this.filePath = filePath;
 	}
 
@@ -29,11 +29,11 @@ public class FileData {
 	}
 
 	public String getFileName() {
-		return fileName;
+		return altPath;
 	}
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setFileName(String altPath) {
+		this.altPath = altPath;
 	}
 
 	public Integer getFileID() {

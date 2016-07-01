@@ -1,7 +1,7 @@
 
 import vorpal from 'vorpal'
 
-import { registerUser, encrypt, loginUser, listFiles, compare } from './functions'
+import { registerUser, encrypt, loginUser, listFiles, compare, uploadFiles } from './functions'
 
 const cli = vorpal()
 let loggedIn = false
@@ -64,4 +64,20 @@ files
     )
   })
 
+const upload = cli.command('upload <local file path> [new file path]')
+upload
+  .action((args, cb) => {
+    return (
+      Promise.resolve(
+        loggedIn === true
+        ? uploadFiles(username, args.localpath, args.newpath)
+          .then((Response) =>
+        Response.trueFalse
+      ? console.log('Upload successful')
+      : console.log('Upload failed')
+    )
+        : console.log('Access denied. Please log in first.')
+      )
+    )
+  })
 cli.show()
