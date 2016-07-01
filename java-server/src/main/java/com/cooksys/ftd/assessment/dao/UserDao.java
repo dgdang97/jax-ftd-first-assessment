@@ -49,7 +49,6 @@ public class UserDao extends AbstractDao {
 				String username = rs.getString("username");
 				if (user.getUser().contentEquals(username)) {
 					String password = rs.getString("password");
-					log.info(password);
 					return password;
 				}
 			}

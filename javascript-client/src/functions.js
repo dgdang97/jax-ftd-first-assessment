@@ -26,6 +26,10 @@ export function loginUser (user) {
   return serverConnect('loginUser', user, null)
 }
 
+export function listFiles (user) {
+  return serverConnect('listFiles', user, null)
+}
+
 export function encrypt (password) {
   return bcrypt.hashSync(password, salt)
 }

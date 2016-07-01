@@ -1,5 +1,7 @@
 package com.cooksys.ftd.assessment.db.models;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "Response")
@@ -7,17 +9,20 @@ public class Response {
 
 	String trueFalse;
 	String hash;
+	List<FileData> listFiles;
 
+	public List<FileData> getListFiles() {
+		return listFiles;
+	}
+
+	public void setListFiles(List<FileData> listFiles) {
+		this.listFiles = listFiles;
+	}
 
 	public Response() {
 		super();
 	}
 	
-	public Response(String trueFalse, String hash) {
-		super();
-		this.trueFalse = trueFalse;
-		this.hash = hash;
-	}
 		
 	public String getHash() {
 		return hash;

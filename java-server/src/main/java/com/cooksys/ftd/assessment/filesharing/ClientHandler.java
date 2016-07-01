@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cooksys.ftd.assessment.dao.FileDao;
 import com.cooksys.ftd.assessment.dao.UserDao;
+import com.cooksys.ftd.assessment.db.models.FileData;
 import com.cooksys.ftd.assessment.db.models.Response;
 import com.cooksys.ftd.assessment.db.models.User;
 
@@ -67,54 +69,51 @@ public class ClientHandler implements Runnable {
 		}
 
 	}
-
+	private void output(Response response) throws JAXBException {
+		StringWriter sw = new StringWriter();
+		this.marshal.marshal(response, sw);
+		writer.print(sw.toString());
+		writer.flush();
+	}
+	
 	@Override
 	public void run() {
 		log.info("Client connected. Awaiting command.");
 		try {
 			String command = this.reader.readLine();
 			log.info("Received command");
+			StringReader sr =  new StringReader(this.reader.readLine());
+			User user = (User) uMarshall.unmarshal(sr);
+			Response response = new Response();
 			
 			if (command.equals("registerUser")) {
-				StringReader sr = new StringReader(this.reader.readLine());
-
-				User registerUser = (User) uMarshall.unmarshal(sr);
-				Boolean registerSuccess = this.userDao.registerUser(registerUser);
-
-				Response response = new Response();
-				response.setTrueFalse(registerSuccess.toString());
-
-				StringWriter sw = new StringWriter();
-				this.marshal.marshal(response, sw);
-
-				writer.print(sw.toString());
-				writer.flush();
-
-				log.info("command executed");
-			} else if (command.equals("loginUser")) {
-				StringReader sr = new StringReader(this.reader.readLine());
 				
-				User loginUser = (User) uMarshall.unmarshal(sr);
-				String isUser = this.userDao.loginUser(loginUser);
+				Boolean registerSuccess = this.userDao.registerUser(user);
+				
+				response.setTrueFalse(registerSuccess.toString());
+				this.output(response);
+				
+			} else if (command.equals("loginUser")) {
+				
+				String isUser = this.userDao.loginUser(user);
 				Boolean userCheck;
 				
-				Response success = new Response();
 				if (isUser.equals("Username not in use")) {
 					userCheck = false;
 				} else {
 					userCheck = true;
-					success.setHash(isUser);
+					response.setHash(isUser);
 				}
+				response.setTrueFalse(userCheck.toString());
+				this.output(response);
 				
-				success.setTrueFalse(userCheck.toString());
+			} else if (command.equals("listFiles")) {
 				
-				StringWriter sw = new StringWriter();
-				this.marshal.marshal(success, sw);
-				writer.print(sw.toString());
-				writer.flush();
-				
-				log.info("command executed");
+				List<FileData> fileList = fileDao.listFiles(user);
+				response.setListFiles(fileList);
+				this.output(response);
 			}
+			
 		} catch (IOException | JAXBException e) {
 			log.error("An error occurred while obtaining a client command", e);
 		}

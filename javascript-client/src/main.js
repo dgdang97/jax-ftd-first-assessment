@@ -1,10 +1,11 @@
 
 import vorpal from 'vorpal'
 
-import { registerUser, encrypt, loginUser, compare } from './functions'
+import { registerUser, encrypt, loginUser, listFiles, compare } from './functions'
 
 const cli = vorpal()
 let loggedIn = false
+let username = ''
 
 cli.delimiter('Input:')
 
@@ -38,6 +39,7 @@ login
           .then((correctPassword) => {
             if (correctPassword) {
               loggedIn = true
+              username = args.username
               console.log('Successfully logged in.')
             } else {
               console.log('Login failed. Please try again.')
@@ -49,5 +51,17 @@ login
     )
   )
 })
+
+const files = cli.command('files')
+files
+  .action((args, cb) => {
+    return (
+      Promise.resolve(
+        loggedIn === true
+        ? listFiles(username)
+        : console.log('Access denied. Please log in first.')
+      )
+    )
+  })
 
 cli.show()
