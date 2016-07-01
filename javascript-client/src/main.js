@@ -1,7 +1,7 @@
 
 import vorpal from 'vorpal'
 
-import { registerUser, encrypt, loginUser } from './functions'
+import { registerUser, encrypt, loginUser, compare } from './functions'
 
 const cli = vorpal()
 let loggedIn = false
@@ -28,19 +28,26 @@ const login = cli.command('login <username> <password>')
 login
 .description('logs in with a specified username with a password')
 .action((args, cb) => {
-  const hashword = encrypt(args.password)
   return (
-  Promise.resolve(hashword !== undefined)
-    .then(() => loginUser(args.username, hashword))
+  Promise.resolve(
+      loggedIn === false
+    ? loginUser(args.username)
       .then((Response) => {
-        if (Response.trueFalse === 'true') {
-          loggedIn = true
-          console.log('Successfully logged in')
-        } else {
-          console.log('Register failed. Username already taken.')
-        }
+        Response.trueFalse === 'true'
+        ? compare(args.password, Response.hash)
+          .then((correctPassword) => {
+            if (correctPassword) {
+              loggedIn = true
+              console.log('Successfully logged in.')
+            } else {
+              console.log('Login failed. Please try again.')
+            }
+          })
+        : console.log('Login failed. Please try again.')
       })
+      : console.log('You are already logged in!')
     )
+  )
 })
 
 cli.show()

@@ -74,26 +74,46 @@ public class ClientHandler implements Runnable {
 		try {
 			String command = this.reader.readLine();
 			log.info("Received command");
+			
 			if (command.equals("registerUser")) {
 				StringReader sr = new StringReader(this.reader.readLine());
+
 				User registerUser = (User) uMarshall.unmarshal(sr);
-				log.info(registerUser.getPassword());
-				Boolean registerSuccess = true;//this.userDao.registerUser(registerUser);
+				Boolean registerSuccess = this.userDao.registerUser(registerUser);
+
 				Response response = new Response();
 				response.setTrueFalse(registerSuccess.toString());
+
 				StringWriter sw = new StringWriter();
 				this.marshal.marshal(response, sw);
-				log.info(sw.toString());
+
 				writer.print(sw.toString());
 				writer.flush();
+
 				log.info("command executed");
 			} else if (command.equals("loginUser")) {
 				StringReader sr = new StringReader(this.reader.readLine());
+				
 				User loginUser = (User) uMarshall.unmarshal(sr);
-				Boolean loggedIn = this.userDao.loginUser(loginUser);
+				String isUser = this.userDao.loginUser(loginUser);
+				Boolean userCheck;
+				
+				Response success = new Response();
+				if (isUser.equals("Username not in use")) {
+					userCheck = false;
+				} else {
+					userCheck = true;
+					success.setHash(isUser);
+				}
+				
+				success.setTrueFalse(userCheck.toString());
+				
+				StringWriter sw = new StringWriter();
+				this.marshal.marshal(success, sw);
+				writer.print(sw.toString());
+				writer.flush();
+				
 				log.info("command executed");
-				this.writer.print(loggedIn.toString());
-				this.writer.flush();
 			}
 		} catch (IOException | JAXBException e) {
 			log.error("An error occurred while obtaining a client command", e);

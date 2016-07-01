@@ -11,11 +11,7 @@ function serverConnect (command, user, hashword) {
         server.write(`${command}\n${JSON.stringify({User: {user: user, password: hashword}})}\n`)
         server.on('data', (data) => {
           const { Response } = JSON.parse(data.toString())
-          if (Response.trueFalse === 'true') {
-            resolve(Response)
-          } else {
-            reject(err)
-          }
+          resolve(Response)
         })
       }
     })
@@ -26,16 +22,29 @@ export function registerUser (user, hashword) {
   return serverConnect('registerUser', user, hashword)
 }
 
-export function loginUser (user, hashword) {
-  serverConnect('loginUser', user, hashword)
+export function loginUser (user) {
+  return serverConnect('loginUser', user, null)
 }
 
 export function encrypt (password) {
   return bcrypt.hashSync(password, salt)
 }
 
+export function compare (plaintextPassword, hashedPassword) {
+  return new Promise(function executor (resolve, reject) {
+    bcrypt.compare(plaintextPassword, hashedPassword, function (err, successFlag) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(successFlag)
+      }
+    })
+  })
+}
+
 export default {
   registerUser,
   loginUser,
-  encrypt
+  encrypt,
+  compare
 }

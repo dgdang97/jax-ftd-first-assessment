@@ -6,16 +6,26 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Response {
 
 	String trueFalse;
-	
+	String hash;
+
+
 	public Response() {
 		super();
 	}
 	
-	public Response(String trueFalse) {
+	public Response(String trueFalse, String hash) {
 		super();
 		this.trueFalse = trueFalse;
+		this.hash = hash;
 	}
-	
+		
+	public String getHash() {
+		return hash;
+	}
+
+	public void setHash(String hash) {
+		this.hash = hash;
+	}
 	public String getTrueFalse() {
 		return trueFalse;
 	}
@@ -26,6 +36,6 @@ public class Response {
 	
 	@Override
 	public String toString() {
-		return "Response [trueFalse=" + trueFalse + "]";
+		return "Response [trueFalse=" + trueFalse + ", hash=" + hash + "]";
 	}
 }
