@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cooksys.ftd.assessment.dao.FileDao;
 import com.cooksys.ftd.assessment.dao.UserDao;
+import com.cooksys.ftd.assessment.db.models.Response;
 import com.cooksys.ftd.assessment.db.models.User;
 
 public class ClientHandler implements Runnable {
@@ -76,10 +78,15 @@ public class ClientHandler implements Runnable {
 				StringReader sr = new StringReader(this.reader.readLine());
 				User registerUser = (User) uMarshall.unmarshal(sr);
 				log.info(registerUser.getPassword());
-				Boolean registerSuccess = false;//this.userDao.registerUser(registerUser);
+				Boolean registerSuccess = true;//this.userDao.registerUser(registerUser);
+				Response response = new Response();
+				response.setTrueFalse(registerSuccess.toString());
+				StringWriter sw = new StringWriter();
+				this.marshal.marshal(response, sw);
+				log.info(sw.toString());
+				writer.print(sw.toString());
+				writer.flush();
 				log.info("command executed");
-				this.writer.print(registerSuccess.toString());
-				this.writer.flush();
 			} else if (command.equals("loginUser")) {
 				StringReader sr = new StringReader(this.reader.readLine());
 				User loginUser = (User) uMarshall.unmarshal(sr);
