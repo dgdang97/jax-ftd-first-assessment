@@ -53,8 +53,6 @@ public class Server implements Runnable{
 		PrintWriter writer = new PrintWriter(socket.getOutputStream());
 		handler.setWriter(writer);
 		
-		handler.setSocket(socket);
-		
 		handler.createJAXB();
 		return handler;
 	}

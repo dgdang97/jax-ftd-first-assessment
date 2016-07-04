@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.Socket;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -32,8 +31,6 @@ public class ClientHandler implements Runnable {
 	private PrintWriter writer;
 	private FileDao fileDao;
 	private UserDao userDao;
-	private Socket socket;
-
 	private JAXBContext jc;
 	private Marshaller marshal;
 	private Unmarshaller uMarshall;
@@ -72,7 +69,14 @@ public class ClientHandler implements Runnable {
 
 	}
 
-	private void output(Response response) throws JAXBException {
+	private void output(String trueFalse, String hash) throws JAXBException {
+		Response response = new Response();
+		response.setTrueFalse(trueFalse);
+
+		if (hash != null) {
+			response.setHash(hash);
+		}
+		
 		StringWriter sw = new StringWriter();
 		this.marshal.marshal(response, sw);
 		writer.print(sw.toString());
@@ -85,15 +89,13 @@ public class ClientHandler implements Runnable {
 		try {
 			String command = this.reader.readLine();
 			log.info("Received command {}", command);
-			Response response = new Response();
 			StringReader sr = new StringReader(this.reader.readLine());
 
 			if (command.equals("registerUser")) {
 				User user = (User) uMarshall.unmarshal(sr);
 				Boolean registerSuccess = this.userDao.registerUser(user);
 
-				response.setTrueFalse(registerSuccess.toString());
-				this.output(response);
+				this.output(registerSuccess.toString(), null);
 
 			} else if (command.equals("loginUser")) {
 				User user = (User) uMarshall.unmarshal(sr);
@@ -104,10 +106,8 @@ public class ClientHandler implements Runnable {
 					userCheck = false;
 				} else {
 					userCheck = true;
-					response.setHash(isUser);
 				}
-				response.setTrueFalse(userCheck.toString());
-				this.output(response);
+				this.output(userCheck.toString(), isUser);
 
 			} else if (command.equals("listFiles")) {
 
@@ -123,28 +123,26 @@ public class ClientHandler implements Runnable {
 					this.reader.readLine();
 				}
 				
-				StringWriter sw2 = new StringWriter();
+				StringWriter sw = new StringWriter();
 				
 				FileData fd = new FileData();
 				fd.setFilePath("Stop");
 				
-				this.marshal.marshal(fd, sw2);
-				this.writer.print(sw2.toString());
+				this.marshal.marshal(fd, sw);
+				this.writer.print(sw.toString());
 				this.writer.flush();
 			
 			} else if (command.equals("uploadFile")) {
 				FileData upload = (FileData) uMarshall.unmarshal(sr);
 				Boolean uploaded = fileDao.uploadFiles(upload);
 				
-				response.setTrueFalse(uploaded.toString());
-				this.output(response);
+				this.output(uploaded.toString(), null);
 				
 			} else if (command.equals("downloadFile")) {
 				FileData download = (FileData) uMarshall.unmarshal(sr);
 				Boolean downloaded = fileDao.downloadFile(download);
-				response.setTrueFalse(downloaded.toString());
 				
-				this.output(response);
+				this.output(downloaded.toString(), null);
 			}
 		} catch (IOException | JAXBException e) {
 			log.error("An error occurred while obtaining a client command", e);
@@ -152,9 +150,5 @@ public class ClientHandler implements Runnable {
 
 	}
 
-	public void setSocket(Socket socket) {
-		this.socket = socket;
-
-	}
 
 }

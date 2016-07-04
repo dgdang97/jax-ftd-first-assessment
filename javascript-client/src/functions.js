@@ -1,6 +1,5 @@
 import net from 'net'
 import bcrypt from 'bcryptjs'
-const salt = bcrypt.genSaltSync(10)
 
 function serverConnect (command, user, hashword) {
   return new Promise(function executor (resolve, reject) {
@@ -80,6 +79,7 @@ export function downloadFiles (user, fileID, newpath) {
 }
 
 export function encrypt (password) {
+  const salt = bcrypt.genSaltSync(10)
   return bcrypt.hashSync(password, salt)
 }
 
